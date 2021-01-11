@@ -19,7 +19,7 @@
 ###### 1. Edit Setup in xlsx_convert.py 
 ```
 # 讀取檔案
-source_directory: generated json from backend dir
+source_directory: generated json from backend dir(../Backend_CaiLiFang.Locale.Resx/Json/ios)
 
 # 目標檔案
 project_directory: iOS project dir
