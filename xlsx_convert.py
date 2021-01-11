@@ -1,129 +1,145 @@
 import xlrd
-import datetime
 import re
 
-### Setup for Reading .xlsx ###
-# 讀取檔案
-read_xlsx_file_name = 'I18N_iOS_string_table_20200810_miny.xlsx'
-# 專案內表示文字之欄位
-column_expression = 0 
-# 欲轉換語系之欄位, 1: 越南, 2: 英文, 4: 简中
-column_translate = 1 
+import datetime
+from enum import Enum
+import json
 
-### Output Header ###
-header_1_export_file_name = 'Localizable.strings'
-header_2_from_where = 'from xlsx_convert.py' 
-header_3_created_by = 'auto generated'
-header_4_create_date = datetime.datetime.now().strftime('%Y/%-m/%-d')
-header_5_create_year = datetime.datetime.now().strftime('%Y')
-header_6_copyright = 'JohnsonTechInc.'
-output = '//\n//  %s\n//  %s\n//\n//  created by %s on %s.\n//  Copyright © %s %s All rights reserved.\n//\n\n' % (header_1_export_file_name, header_2_from_where, header_3_created_by, header_4_create_date, header_5_create_year, header_6_copyright)
+### Setup ###
+# project directory
+project_directory = '/Users/bomi.chen/Developer/iOS_CaiLiFang/orange'
+source_directory = '/Users/bomi.chen/Developer/Backend_CaiLiFang.Locale.Resx/Json/ios'
+
+# define reading files by Enum
+class Languages(Enum):
+	Base = 'base'
+	English = 'en'
+	Simplified_Chinese = 'zh-Hans'
+	Vietnamese = 'vi'
+
+	def describe(self):
+		return self.name, self.value
+
+	@classmethod
+	def source_directory(cls, language: "Language" = None):
+		return source_directory
+
+	def fileName(self):
+		val = self.value
+		if val == 'base':
+			return 'ios.zh-CN.json'
+		if val == 'en':
+			return 'ios.en-US.json'
+		if val == 'zh-Hans':
+			return 'ios.zh-CN.json'
+		if val == 'vi':
+			return 'ios.vi-VN.json'
+
+		return ''
+
+	def sub_directory(self):
+		val = self.value
+		if val == 'base':
+			return '/Base.lproj'
+		if val == 'en':
+			return '/en.lproj'
+		if val == 'zh-Hans':
+			return '/zh-Hans.lproj'
+		if val == 'vi':
+			return '/vi.lproj'
+
+		return ''
 
 ### Data Process ###
-print('=== START PROCESS, xlsx File: %s  ===' % read_xlsx_file_name)
-print('\n')
-print('Expression Column: %d' % column_expression)
-print('Translate Column: %d' % column_translate)
-print('\n')
-
-workbook = xlrd.open_workbook(read_xlsx_file_name)
-sheet = workbook.sheet_by_index(0)
-last_match_str = ''
-
-for row in range(column_expression, sheet.nrows):
-
-	### TODO: Read Localized Target to CI ###
-	if row == 0: continue
+print('\n=== START PROCESS ===')
+for language in Languages:
 	
-	str_expression = sheet.cell_value(row,column_expression)
+	file_directory = Languages.source_directory() + '/' + language.fileName()
+	target_directory = project_directory + language.sub_directory() + '/Localizable.strings'
 
-	# prevent from wrong value, wrong translate to 'N/A'
-	# 5 means error, 6 means empty
-	cell_type = sheet.cell_type(row, column_translate)
+	print('%s to Localizable.strings' % language.fileName())
+	print('from: %s' % file_directory)
+	print('to: %s' % target_directory)
 
-	# skip row
-	if row == 1: 
-		print("skip row: %d, cell_type: %d, key: %s" % (row, cell_type, sheet.cell_value(row - 1,0)))
+	#output header
+	### Output Header ###
+	header_1_export_file_name = 'Localizable' + '-' + language.value + '.strings'
+	header_2_from_where = 'from Backend_CaiLiFang.Locale.Resx' 
+	header_3_created_by = 'auto generated'
+	header_4_create_date = datetime.datetime.now().strftime('%Y/%-m/%-d')
+	header_5_create_year = datetime.datetime.now().strftime('%Y')
+	header_6_copyright = 'JohnsonTechInc.'
+	output = '//\n//  %s\n//  %s\n//\n//  created by %s on %s.\n//  Copyright © %s %s All rights reserved.\n//\n\n' % (header_1_export_file_name, header_2_from_where, header_3_created_by, header_4_create_date, header_5_create_year, header_6_copyright)
 
-	# check cell type, refer to https://xlrd.readthedocs.io/en/latest/api.html#xlrd.sheet.Cell
-	# type = 0 : empty
-	# type = 5 : error
-	# type = 6 : blank
-	if cell_type != 0 and cell_type != 5 and cell_type != 6:
-		
-		str_translate = sheet.cell_value(row,column_translate)
-		
-		# only grab type = 1 : unicode string 
-		# find " character, add \
-		if cell_type == 1:
-			str_translate = re.sub(r'(")', r'\\"', str_translate)
+	# parse file
 
-	else:
-		print("row: %d empty/error/blank, cell_type: %d, key: %s" % (row, cell_type, sheet.cell_value(row - 1,0)))
-		continue
-		# if wanna cetrain text write in
-		# str_translate = 'N/A'
+	with open(file_directory) as jsonfile:
+		data = jsonfile.read()
+	
+	jsonObject = json.loads(data)
+	keys = list(jsonObject)
 
-	export_line = '%s = "%s";' % (str_expression, str_translate)
+	row = -1
+	for key in jsonObject:
 
-	# detect localized expression split string 1st, 2nd same
-	# if true add notes
-	if row + 1 < sheet.nrows:
+		row = row + 1 # count row at begin
 
-		str_next_expression = sheet.cell_value(row + 1,column_expression)
+		value = jsonObject[key]
 
-		# split results
-		current_split_results = str_expression.split('.', 3)
-		next_split_results = str_next_expression.split('.', 3)
+		export_line = '%s = \"%s\";' % (key, value)
 
-		# output condition: less than three phrases
-		if len(current_split_results) < 3: 
+		# detect key splited string 1st, 2nd match, if true add notes
+		if row + 1 < len(jsonObject):
+			next_key = keys[row+1]
+
+		cur_split_key_results = key.split('.', 3) # split key to results
+		next_split_key_results = next_key.split('.', 3) # split next_key to results
+
+		if len(cur_split_key_results) < 3: # output condition: less than three phrases
 			last_match_str = ''
 			output = output + '\n' + export_line + '\n'
 			continue
 
-		phrases_current = ''
-		pharses_next = ''
-		count = 0
+		cur_phrases = ''
+		next_pharses = ''
 
-		# get current first 2 pharses
-		for r in current_split_results:
-			if count > 1: # read first 2
-				break 
-			phrases_current = phrases_current + r
-			count = count + 1
-		
-		# if match with last matched string, continue(skip)
-		if phrases_current == last_match_str:
-			# output condition: already matched
-			output = output + export_line + '\n'
-			continue
-		# if not, clear last matched string
-		else:
-			last_match_str = ''
-
-		# get next first 2 pharses
 		count = 0
-		for r in next_split_results:
+		for r in cur_split_key_results: # get current first 2 pharses
 			if count > 1: # read first 2
 				break
-			pharses_next = pharses_next + r
+			cur_phrases = cur_phrases + r
+			count = count + 1
+		
+		if cur_phrases == last_match_str: # if match with last matched string, output & continue(skip)
+			output = output + export_line + '\n' # output condition: matched
+			continue
+		else: # if not, clear last matched string
+			last_match_str = ''
+
+		count = 0
+		for r in next_split_key_results: # get next first 2 pharses
+			if count > 1: # read first 2
+				break
+			next_pharses = next_pharses + r
 			count = count + 1
 
-		# current & next matched, add notes
-		if phrases_current == pharses_next:
-			export_line = '\n//%s\n' % (phrases_current) + export_line
-			last_match_str = phrases_current
+		if cur_phrases == next_pharses: # current & next matched, add notes
+			export_line = '//%s\n' % (cur_phrases) + export_line
+			last_match_str = cur_phrases
 
-	# output condition: normal
-	output = output + export_line + '\n'
+		output = output + '\n' + export_line + '\n'
 
-### Output File ###
-text_file = open(header_1_export_file_name, "w")
-text_file.write(output)
-text_file.close()
-print('\n=== COMPLETE, Generated file: %s ===' % header_1_export_file_name)
-# print('' )
+	### Output File ###
+	text_file = open(target_directory, "w")
+	text_file.write(output)
+	text_file.close()
+	print('done\n')
+
+print('=== COMPLETE ===')
+
+
+
+
 
 
 
