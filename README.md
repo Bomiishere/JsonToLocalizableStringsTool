@@ -23,7 +23,7 @@ source_directory: generated json from backend dir
 
 # 目標檔案
 project_directory: iOS project dir
-
+```
 ###### 2. Execute convert_xlsx.py, generate Localizable.strings
 ```
 python3 xlsx_convert.py
