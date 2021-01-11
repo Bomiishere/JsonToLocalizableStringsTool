@@ -16,7 +16,7 @@
 
 ### Usage
 ##### Required
-###### 1. Edit Setup in xlsx_convert.py 
+###### 1. Edit Setup in json_convert.py 
 ```
 # 讀取檔案
 source_directory: generated json from backend dir(../Backend_CaiLiFang.Locale.Resx/Json/ios)
@@ -24,9 +24,9 @@ source_directory: generated json from backend dir(../Backend_CaiLiFang.Locale.Re
 # 目標檔案
 project_directory: iOS project dir
 ```
-###### 2. Execute convert_xlsx.py, generate Localizable.strings
+###### 2. Execute json_convert.py, generate Localizable.strings
 ```
-python3 xlsx_convert.py
+python3 json_convert.py
 ```
 ##### Optional
 ###### 修改 output file 註解
@@ -40,11 +40,11 @@ header_6_copyright = 'JohnsonTechInc.'
 ```
 
 #### Tips
-* python3 install, [click me for reference](https://stringpiggy.hpd.io/mac-osx-python3-dual-install/)
+* python3 install, [click me for ref](https://stringpiggy.hpd.io/mac-osx-python3-dual-install/)
 
 * install modules
 ```bash
-python3 -m pip install --upgrade xlsxwriter
+python3 -m pip install --upgrade module_name
 ```
 
 * install jupyter

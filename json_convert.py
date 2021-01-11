@@ -6,7 +6,6 @@ from enum import Enum
 import json
 
 ### Setup ###
-# project directory
 project_directory = '/Users/bomi.chen/Developer/iOS_CaiLiFang/orange'
 source_directory = '/Users/bomi.chen/Developer/Backend_CaiLiFang.Locale.Resx/Json/ios'
 
