@@ -44,7 +44,9 @@ header_6_copyright = 'JohnsonTechInc.'
 
 * install modules
 ```bash
-python3 -m pip install --upgrade module_name
+python3 -m pip install --upgrade module_name --user
+or
+python3 -m pip install module_name --user
 ```
 
 * install jupyter
