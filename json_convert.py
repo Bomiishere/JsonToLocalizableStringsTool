@@ -6,8 +6,8 @@ from enum import Enum
 import json
 
 ### Setup ###
-project_directory = '/Users/bomi.chen/Developer/iOS_CaiLiFang/orange'
-source_directory = '/Users/bomi.chen/Developer/Backend_CaiLiFang.Locale.Resx/Json/ios'
+project_directory = '/Users/bomichen/Developer/iOS_CaiLiFang/orange'
+source_directory = '/Users/bomichen/Developer/Backend_CaiLiFang.Locale.Resx/Json/ios'
 
 # define reading files by Enum
 class Languages(Enum):
